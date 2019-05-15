@@ -12,13 +12,13 @@ document.body.appendChild(menuBar);
 let penButton = document.createElement("button");
 penButton.className = "penButton";
 penButton.innerHTML = "Pen";
-penButton.onclick = function() { setAnnotMode("pen"); };
+penButton.onclick = function() { setAnnotMode(AttribModePen); };
 menuBar.appendChild(penButton);
 
 let eraserButton = document.createElement("button");
 eraserButton.className = "eraserButton";
 eraserButton.innerHTML = "Eraser";
-eraserButton.onclick = function() { setAnnotMode("eraser"); };
+eraserButton.onclick = function() { setAnnotMode(AttribModeEraser); };
 menuBar.appendChild(eraserButton);
 
 let undoButton = document.createElement("button");

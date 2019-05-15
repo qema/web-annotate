@@ -1,3 +1,4 @@
+var canvases = [];
 var canvasAnnotIdIdx = 0;
 var canvasIdToStrokes = {}, canvasById = {};
 function makeCanvasForPoint(x, y) {
@@ -62,16 +63,17 @@ function resizeCanvasForPoint(x, y, canvas) {
     ctx.putImageData(savedImageData, dx, dy);
 }
 
-function isPointInCanvas(x, y, canvas) {
-    return (x >= canvas.offsetLeft && y >= canvas.offsetTop &&
-        x <= canvas.offsetLeft + canvas.offsetWidth &&
-        y <= canvas.offsetTop + canvas.offsetHeight);
+function isPointInCanvas(x, y, canvas, padding) {
+    return (x >= canvas.offsetLeft - padding &&
+        y >= canvas.offsetTop - padding &&
+        x <= canvas.offsetLeft + canvas.offsetWidth + padding &&
+        y <= canvas.offsetTop + canvas.offsetHeight + padding);
 }
 
 function getCanvasForPoint(x, y) {
     for (let i = 0; i < canvases.length; i++) {
         let canvas = canvases[i];
-        if (isPointInCanvas(x, y, canvas)) {
+        if (isPointInCanvas(x, y, canvas, 0)) {
             return canvas;
         }
     }
@@ -100,7 +102,7 @@ function drawPenStrokeBegin(pageX, pageY, attribs) {
 
 function drawPenStrokeContinue(sx, sy, lx, ly, x, y, attribs) {
     let canvas = getCanvasForPoint(sx, sy);
-    if (!isPointInCanvas(x, y, canvas)) {
+    if (!isPointInCanvas(x, y, canvas, 0)) {
         resizeCanvasForPoint(x, y, canvas);
     }
 
@@ -110,6 +112,7 @@ function drawPenStrokeContinue(sx, sy, lx, ly, x, y, attribs) {
     ctx.lineWidth = attribs.size;
     ctx.strokeStyle = attribs.color;
     ctx.beginPath();
+    ctx.lineCap = "round";
     ctx.moveTo(lastCanvasPos.x, lastCanvasPos.y);
     ctx.lineTo(canvasPos.x, canvasPos.y);
     ctx.stroke();
@@ -121,10 +124,23 @@ function drawPenStrokeEnd(points, attribs, actionId) {
     if (!(canvas.annotId in canvasIdToStrokes)) {
         canvasIdToStrokes[canvas.annotId] = []
     }
+    var left = Infinity, top = Infinity, bottom = 0, right = 0;
+    for (let i = 0; i < points.length; i++) {
+        let x = points[i].x, y = points[i].y;
+        left = Math.min(left, x);
+        top = Math.min(top, y);
+        right = Math.max(right, x);
+        bottom = Math.max(bottom, y);
+    }
+
     canvasIdToStrokes[canvas.annotId].push({
         points: points,
         attribs: attribs,
-        actionId: actionId
+        actionId: actionId,
+        left: left,
+        top: top,
+        right: right,
+        bottom: bottom
     });
 }
 
@@ -145,7 +161,6 @@ function erasePenStroke(points, attribs, actionId) {
     if (!strokes) return;
 
     var toRemoveIdx = -1;
-    console.log(strokes);
     for (let i = 0; i < strokes.length; i++) {
         let stroke = strokes[i];
         if (actionId == stroke.actionId) {
@@ -163,5 +178,59 @@ function erasePenStroke(points, attribs, actionId) {
                     oldStrokes[i].actionId);
             }
         }
+    }
+}
+
+function eraseAt(x, y, size) {
+    for (let i = 0; i < canvases.length; i++) {
+        let canvas = canvases[i];
+        if (!isPointInCanvas(x, y, canvas, size)) continue;
+        let canvasId = canvas.annotId;
+        if (!(canvasId in canvasIdToStrokes)) continue;
+        for (let j = 0; j < canvasIdToStrokes[canvasId].length; j++) {
+            let stroke = canvasIdToStrokes[canvasId][j];
+            if (!(x >= stroke.left - size && y >= stroke.top - size &&
+                x <= stroke.right + size && y <= stroke.bottom + size))
+                continue;
+            let points = stroke.points;
+            for (let l = 0; l < points.length; l++) {
+                let point = points[l];
+                if ((point.x - x)*(point.x - x) + 
+                    (point.y - y)*(point.y - y) <= size*size) {
+                    erasePenStroke(points, stroke.attribs,
+                        stroke.actionId);
+                    return {points: points, attribs: stroke.attribs,
+                        actionId: stroke.actionId};
+                }
+            }
+        }
+    }
+    return null;
+}
+
+var erasedStrokes = [];
+function eraserStrokeBegin(x, y, attribs) {
+    erasedStrokes = [];
+    let erasedStroke = eraseAt(x, y, attribs.size);
+    if (erasedStroke) {
+        erasedStrokes.push(erasedStroke);
+    }
+}
+
+function eraserStrokeContinue(lx, ly, x, y, attribs) {
+    let erasedStroke = eraseAt(x, y, attribs.size);
+    if (erasedStroke) {
+        erasedStrokes.push(erasedStroke);
+    }
+}
+
+function eraserStrokeEnd(points, attribs) {
+    return erasedStrokes;
+}
+
+function eraseStrokes(strokes) {
+    for (let i = 0; i < strokes.length; i++) {
+        let stroke = strokes[i];
+        erasePenStroke(stroke.points, stroke.attribs, stroke.actionId);
     }
 }

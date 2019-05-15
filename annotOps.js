@@ -6,7 +6,7 @@ let PenAnnotAttribs = {
 };
 let EraserAnnotAttribs = {
     "mode": "eraser",
-    "size": 4
+    "size": 8
 };
 const AttribModePen = "pen";
 const AttribModeEraser = "eraser";
@@ -62,7 +62,7 @@ function recordPenStroke(points, attribs) {
 
 function beginStylusStroke(pageX, pageY) {
     if (annotAttribs.mode == AttribModePen) {
-        drawPenStrokeBegin(pageX, pageY, annotAttribs);
+        drawPenStrokeBegin(pageX, pageY, annotAttribs, actionId);
     } else if (annotAttribs.mode == AttribModeEraser) {
         eraserStrokeBegin(pageX, pageY, annotAttribs);
     }
@@ -70,7 +70,7 @@ function beginStylusStroke(pageX, pageY) {
 
 function continueStylusStroke(sx, sy, lx, ly, x, y) {
     if (annotAttribs.mode == AttribModePen) {
-        drawPenStrokeContinue(sx, sy, lx, ly, x, y, annotAttribs);
+        drawPenStrokeContinue(sx, sy, lx, ly, x, y, annotAttribs, actionId);
     } else if (annotAttribs.mode == AttribModeEraser) {
         eraserStrokeContinue(lx, ly, x, y, annotAttribs);
     }

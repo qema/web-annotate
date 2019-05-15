@@ -1,6 +1,9 @@
+const CanvasStrokeCapacity = 40;
+
 var canvases = [];
 var canvasAnnotIdIdx = 0;
 var canvasIdToStrokes = {}, canvasById = {};
+var actionIdToCanvas = {};
 function makeCanvasForPoint(x, y) {
     let annotationLayer = document.getElementById("annotationLayer");
     let canvas = document.createElement("canvas");
@@ -24,7 +27,7 @@ function makeCanvasForPoint(x, y) {
     canvas.height = height * window.devicePixelRatio;
     canvas.style.overflow = "hidden";
     canvas.style.position = "absolute";
-//    canvas.style.border = "solid red 2px";
+    canvas.style.border = "solid red 2px";
     annotationLayer.appendChild(canvas);
     canvases.push(canvas);
     return canvas;
@@ -70,10 +73,16 @@ function isPointInCanvas(x, y, canvas, padding) {
         y <= canvas.offsetTop + canvas.offsetHeight + padding);
 }
 
+function getCanvasForActionId(actionId) {
+    return actionIdToCanvas[actionId];
+}
+
 function getCanvasForPoint(x, y) {
     for (let i = 0; i < canvases.length; i++) {
         let canvas = canvases[i];
-        if (isPointInCanvas(x, y, canvas, 0)) {
+        let underStrokeCapacity = !(canvas.annotId in canvasIdToStrokes &&
+            canvasIdToStrokes[canvas.annotId].length >= CanvasStrokeCapacity);
+        if (isPointInCanvas(x, y, canvas, 0) && underStrokeCapacity) {
             return canvas;
         }
     }
@@ -87,10 +96,13 @@ function pagePosToCanvasPos(pageX, pageY, canvas) {
     return {x: x, y: y}
 }
 
-function drawPenStrokeBegin(pageX, pageY, attribs) {
+function drawPenStrokeBegin(pageX, pageY, attribs, actionId) {
     // get canvas, or make one if one doesn't exist at this point
-    let canvas = getCanvasForPoint(pageX, pageY) ||
+    let canvas = getCanvasForActionId(actionId) ||
+        getCanvasForPoint(pageX, pageY) ||
         makeCanvasForPoint(pageX, pageY);
+    actionIdToCanvas[actionId] = canvas;
+
     let ctx = canvas.getContext("2d");
     ctx.beginPath();
     let canvasPos = pagePosToCanvasPos(pageX, pageY, canvas);
@@ -100,8 +112,8 @@ function drawPenStrokeBegin(pageX, pageY, attribs) {
     ctx.fill();
 }
 
-function drawPenStrokeContinue(sx, sy, lx, ly, x, y, attribs) {
-    let canvas = getCanvasForPoint(sx, sy);
+function drawPenStrokeContinue(sx, sy, lx, ly, x, y, attribs, actionId) {
+    let canvas = getCanvasForActionId(actionId);
     if (!isPointInCanvas(x, y, canvas, 0)) {
         resizeCanvasForPoint(x, y, canvas);
     }
@@ -119,7 +131,7 @@ function drawPenStrokeContinue(sx, sy, lx, ly, x, y, attribs) {
 }
 
 function drawPenStrokeEnd(points, attribs, actionId) {
-    let canvas = getCanvasForPoint(points[0].x, points[0].y);
+    let canvas = getCanvasForActionId(actionId);
 
     if (!(canvas.annotId in canvasIdToStrokes)) {
         canvasIdToStrokes[canvas.annotId] = []
@@ -145,17 +157,17 @@ function drawPenStrokeEnd(points, attribs, actionId) {
 }
 
 function drawPenStroke(points, attribs, actionId) {
-    drawPenStrokeBegin(points[0].x, points[0].y, attribs);
+    drawPenStrokeBegin(points[0].x, points[0].y, attribs, actionId);
     for (let i = 1; i < points.length; i++) {
         drawPenStrokeContinue(points[0].x, points[0].y,
             points[i-1].x, points[i-1].y,
-            points[i].x, points[i].y, attribs);
+            points[i].x, points[i].y, attribs, actionId);
     }
     drawPenStrokeEnd(points, attribs, actionId);
 }
 
 function erasePenStroke(points, attribs, actionId) {
-    let canvas = getCanvasForPoint(points[0].x, points[0].y);
+    let canvas = getCanvasForActionId(actionId);
     if (!canvas) return;
     let strokes = canvasIdToStrokes[canvas.annotId];
     if (!strokes) return;

@@ -24,19 +24,18 @@ menuBar.appendChild(eraserButton);
 let undoButton = document.createElement("button");
 undoButton.className = "undoButton";
 undoButton.innerHTML = "Undo";
+undoButton.onclick = undo;
 menuBar.appendChild(undoButton);
 
 let redoButton = document.createElement("button");
 redoButton.className = "redoButton";
 redoButton.innerHTML = "Redo";
+redoButton.onclick = redo;
 menuBar.appendChild(redoButton);
 
 // create annotation layer
 var annotationLayer = document.getElementById("annotationLayer");
-//var canvas;
 if (!annotationLayer) {
-//    canvas = annotationLayer.getElementById("annotationLayerCanvas");
-//} else {
     annotationLayer = document.createElement("div");
     document.body.appendChild(annotationLayer);
     annotationLayer.id = "annotationLayer";
@@ -59,13 +58,12 @@ document.addEventListener("touchstart", function(e) {
         // if using stylus and not currently scrolling
         if (touches[i].force != 0.5 && e.cancelable) {
             e.preventDefault();
-            lastx = touches[i].pageX;
-            lasty = touches[i].pageY;
+            let x = touches[i].pageX, y = touches[i].pageY;
             stylusTouchId = touches[i].identifier;
             isStylusDown = true;
 
-            strokePoints = [{x: lastx, y: lasty}];
-            beginStylusStroke(lastx, lasty);
+            strokePoints = [{x: x, y: y}];
+            beginStylusStroke(x, y);
             //document.body.style.touchAction = "none";
 //            if (lasty > canvas.height) {
 //                canvas.height = lasty + 800;
@@ -85,8 +83,11 @@ document.addEventListener("touchmove", function(e) {
     for (let i = 0; i < touches.length; i++) {
         if (isStylusDown && touches[i].identifier == stylusTouchId) {
             let x = touches[i].pageX, y = touches[i].pageY;
-            strokePoints.push({x: lastx, y: lasty});
-            continueStylusStroke(strokePoints);
+            let lastx = strokePoints[strokePoints.length-1].x;
+            let lasty = strokePoints[strokePoints.length-1].y;
+            continueStylusStroke(strokePoints[0].x, strokePoints[0].y,
+                lastx, lasty, x, y);
+            strokePoints.push({x: x, y: y});
 
 //            if (y > canvas.height) {
 //                canvas.height = lasty + 800;
@@ -98,8 +99,6 @@ document.addEventListener("touchmove", function(e) {
 //            ctx.lineWidth = 4;
 //            ctx.strokeStyle = "black";
 //            ctx.stroke();
-            lastx = x;
-            lasty = y;
         }
     }
 //    ctx.beginPath();

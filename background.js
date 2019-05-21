@@ -1,6 +1,6 @@
-chrome.browserAction.onClicked.addListener(function(tab) {
-	chrome.tabs.executeScript(null, {code: "toggleAnnotationView();"});
-});
+//chrome.browserAction.onClicked.addListener(function(tab) {
+//	chrome.tabs.executeScript(null, {code: "lazyStartAnnotation();"});
+//});
 
 chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
     if (info.status == "complete") {

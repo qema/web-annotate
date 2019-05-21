@@ -1,8 +1,3 @@
-const MenuButtonDefaultColor = "rgba(0, 0, 0, 0)";
-const MenuButtonHoverColor = "#cccccc";
-const MenuButtonActiveColor = "#bbb";
-const MenuButtonActiveHoverColor = "#aaa";
-
 var annotationLayer = null;
 function createAnnotationLayer() {
     var hoveringOverMenuBar = false;
@@ -26,81 +21,7 @@ function createAnnotationLayer() {
     annotationLayer.style.width = "100%";
     annotationLayer.style.height = "100%";
     annotationLayer.style.overflow = "visible";
-    annotationLayer.style.display = "none";
-
-    // create menu bar
-    let menuBar = document.createElement("div");
-    menuBar.id = "annotationLayerMenuBar";
-    menuBar.style.position = "fixed";
-    menuBar.style.width = "192px";
-    menuBar.style.height = "48px";
-    menuBar.style.top = "12px";
-    menuBar.style.right = "12px";
-    menuBar.style.backgroundColor = "#eee";
-    menuBar.style.opacity = 0.9;
-    menuBar.style.borderRadius = "6px";
-    menuBar.style.zIndex = "100001";
-    menuBar.style.display = "none";
-    menuBar.onmouseenter = function() {
-        hoveringOverMenuBar = true;
-    };
-    menuBar.onmouseleave = function() {
-        hoveringOverMenuBar = false;
-    };
-    document.body.appendChild(menuBar);
-
-    function createMenuButton(name) {
-        let imgURL = chrome.runtime.getURL("images/" + name + ".png");
-        let button = document.createElement("img");
-        button.src = imgURL;
-        button.style.width = "24px";
-        button.style.height = "24px";
-        button.style.padding = "6px";
-        button.style.margin = "6px";
-        button.style.borderRadius = "6px";
-        button.style.boxSizing = "content-box";
-        button.style.backgroundColor = MenuButtonDefaultColor;
-        button.annotIsActive = false;
-        button.onmouseenter = function() {
-            button.style.backgroundColor = button.annotIsActive ?
-                MenuButtonActiveHoverColor : MenuButtonHoverColor;
-        }
-        button.onmouseleave = function() {
-            button.style.backgroundColor = button.annotIsActive ?
-                MenuButtonActiveColor : MenuButtonDefaultColor;
-        }
-        return button;
-    }
-
-    let penButton = createMenuButton("pen");
-    let eraserButton = createMenuButton("eraser");
-    menuBar.appendChild(penButton);
-    menuBar.appendChild(eraserButton);
-
-    penButton.onmousedown = function() {
-        eraserButton.style.backgroundColor = MenuButtonDefaultColor;
-        eraserButton.annotIsActive = false;
-        penButton.style.backgroundColor = MenuButtonActiveHoverColor;
-        penButton.annotIsActive = true;
-        setAnnotMode(AttribModePen);
-    };
-    eraserButton.onmousedown = function() {
-        penButton.style.backgroundColor = MenuButtonDefaultColor;
-        penButton.annotIsActive = false;
-        eraserButton.style.backgroundColor = MenuButtonActiveHoverColor;
-        eraserButton.annotIsActive = true;
-        setAnnotMode(AttribModeEraser);
-    };
-
-    let undoButton = createMenuButton("undo");
-    undoButton.onclick = undo;
-    menuBar.appendChild(undoButton);
-
-    let redoButton = createMenuButton("redo");
-    redoButton.className = "redoButton";
-    redoButton.innerHTML = "Redo";
-    redoButton.onclick = redo;
-    menuBar.appendChild(redoButton);
+    //annotationLayer.style.display = "none";
 
     document.addEventListener("touchstart", function(e) {
         let container = document.getElementById("viewerContainer") ||
@@ -180,16 +101,7 @@ function createAnnotationLayer() {
     }, false);
 }
 
-function toggleAnnotationView() {
+function lazyStartAnnotation() {
     if (!annotationLayer)
         createAnnotationLayer();
-
-    let menuBar = document.getElementById("annotationLayerMenuBar");
-    if (menuBar.style.display == "none") {
-        annotationLayer.style.display = "block";
-        menuBar.style.display = "block";
-    } else {
-        annotationLayer.style.display = "none";
-        menuBar.style.display = "none";
-    }
 }

@@ -1,3 +1,4 @@
+const DebugDraw = false;
 const CanvasStrokeCapacity = 40;
 
 var canvases = [];
@@ -27,7 +28,8 @@ function makeCanvasForPoint(x, y) {
     canvas.height = height * window.devicePixelRatio;
     canvas.style.overflow = "hidden";
     canvas.style.position = "absolute";
-    canvas.style.border = "solid red 2px";
+    if (DebugDraw)
+        canvas.style.border = "solid red 2px";
     annotationLayer.appendChild(canvas);
     canvases.push(canvas);
     return canvas;

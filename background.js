@@ -3,7 +3,10 @@
 //});
 
 chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
-    if (info.status == "complete") {
+    if (info.status == "loading") {
+        // initialize state
+        chrome.storage.sync.set({annotMode: "pen"});
+
         // is PDF?
         if (tab.url.toLowerCase().endsWith(".pdf")) {
             chrome.tabs.executeScript(null, {file: "pdf.js"});

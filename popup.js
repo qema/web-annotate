@@ -42,22 +42,24 @@ let eraserButton = createMenuButton("eraser");
 menuBar.appendChild(penButton);
 menuBar.appendChild(eraserButton);
 
-penButton.addEventListener("mousedown", function(e) {
+function penMouseDown() {
     eraserButton.style.backgroundColor = MenuButtonDefaultColor;
     eraserButton.annotIsActive = false;
     penButton.annotIsActive = true;
     penButton.style.backgroundColor = MenuButtonActiveMouseDownColor;
     chrome.storage.sync.set({annotMode: "pen"});
     chrome.tabs.executeScript(null, {code: "setAnnotMode(AttribModePen);"});
-});
-eraserButton.addEventListener("mousedown", function(e) {
+}
+penButton.addEventListener("mousedown", penMouseDown);
+function eraserMouseDown() {
     penButton.style.backgroundColor = MenuButtonDefaultColor;
     penButton.annotIsActive = false;
     eraserButton.annotIsActive = true;
     eraserButton.style.backgroundColor = MenuButtonActiveMouseDownColor;
     chrome.storage.sync.set({annotMode: "eraser"});
     chrome.tabs.executeScript(null, {code: "setAnnotMode(AttribModeEraser);"});
-});
+}
+eraserButton.addEventListener("mousedown", eraserMouseDown);
 
 let undoButton = createMenuButton("undo");
 undoButton.addEventListener("mousedown", function(e) {
@@ -77,7 +79,9 @@ chrome.tabs.executeScript(null, {code: "lazyStartAnnotation();"});
 chrome.storage.sync.get("annotMode", function(data) {
     if (data.annotMode == "pen") {
         penButton.onmousedown();
+        penMouseDown();
     } else if (data.annotMode == "eraser") {
         eraserButton.onmousedown();
+        eraserMouseDown();
     }
 });

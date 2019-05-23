@@ -10,10 +10,11 @@ chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
         // is PDF?
         if (tab.url.toLowerCase().endsWith(".pdf")) {
             chrome.tabs.executeScript(null, {file: "pdf.js"});
+            chrome.tabs.executeScript(null, {file: "pdf_viewer.js"});
             chrome.tabs.executeScript(null, {file: "displayPdf.js"},
                 function(res) {
                     chrome.tabs.executeScript(null,
-                        {code: 'displayPdf("' + tab.url + '");'});
+                        {code: 'setPdfUrl("' + tab.url + '");'});
                 }
             );
         }

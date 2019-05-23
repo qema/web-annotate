@@ -19,7 +19,8 @@
     },
     "web_accessible_resources": [
         "images/*.png",
-        "displayPdf.html"
+        "displayPdf.html",
+        "pdf_viewer.css"
     ],
     "manifest_version": 2
 }

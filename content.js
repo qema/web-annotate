@@ -56,13 +56,20 @@ function createAnnotationLayer() {
         }
     }, {passive: false});
 
+    var savedAnnotMode, lastUsedStylusEraser = false;
     document.addEventListener("pointerdown", function(e) {
         // if using stylus and not currently scrolling or on menu bar
         if (e.pointerType == "pen" && !hoveringOverMenuBar) {
             if (e.which == PointerTypeSurfacePen) {
-                setAnnotMode("pen");
+                //chrome.storage.sync.get("annotMode", setAnnotMode);
+                if (lastUsedStylusEraser) {
+                    setAnnotMode(savedAnnotMode);
+                    lastUsedStylusEraser = false;
+                }
             } else if (e.which == PointerTypeSurfaceEraser) {
+                savedAnnotMode = getAnnotMode();
                 setAnnotMode("eraser");
+                lastUsedStylusEraser = true;
             }
 
             touchEventGate++;

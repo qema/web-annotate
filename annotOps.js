@@ -1,15 +1,15 @@
 // attribs
+const AttribModePen = "pen";
+const AttribModeEraser = "eraser";
 let PenAnnotAttribs = {
-    "mode": "pen",
+    "mode": AttribModePen,
     "size": 4,
     "color": "black"
 };
 let EraserAnnotAttribs = {
-    "mode": "eraser",
+    "mode": AttribModeEraser,
     "size": 8
 };
-const AttribModePen = "pen";
-const AttribModeEraser = "eraser";
 
 // actions
 function PenStrokeAction(points, attribs, actionId) {
@@ -49,6 +49,10 @@ function setAnnotMode(mode) {
     } else if (mode == AttribModeEraser) {
         annotAttribs = EraserAnnotAttribs;
     }
+}
+
+function getAnnotMode() {
+    return annotAttribs.mode;
 }
 
 function commitAction(action) {
